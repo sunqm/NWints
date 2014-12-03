@@ -1,0 +1,73 @@
+Version 2.2.0 (2014-12-01):
+	* update cint1e structure
+	* add I8 support
+
+Version 2.1.2 (2014-11-25):
+	* Change to general compiling flags
+
+Version 2.1.1 (2014-11-16):
+	* Disable the compiling of examples by default
+
+Version 2.1.0 (2014-10-16):
+	* use cmake
+
+Version 2.0.7 (2014-10-16):
+	* Fix bug in examples/c_call_cartesian.c
+	* Add new 1e integrals
+
+Version 2.0.6 (2014-10-13):
+	* Fix bug in optimizer.c
+
+Version 2.0.5 (2014-09-21):
+	* Support angular momentum l=6
+
+Version 2.0.4 (2014-08-16):
+	* Add external cart2sph functions
+
+Version 2.0.3 (2014-05-30):
+	* Add SOO and SSO integrals
+	* Update clisp script to handle new integrals
+
+Version 2.0.2 (2014-05-25):
+	* Small optimization
+
+Version 2.0.1 (2014-04-20):
+	* Fix bug in optimizer which write data cross array boundary
+
+Version 2.0 (2014-04-20):
+	* Change API
+	  - Add prefix CINT on built-in function to avoid name conliction
+	  - Change function prototype from
+		xxx(atm, natm, bas, nbas, env);
+	    to
+		xxx(atm, natm, bas, nbas, env, opt);
+	  - p function are oredered as px py pz for spheric GTOs.
+	* Add optimizer which can roughly speed up ERI by 10%
+
+Version 1.2 (2013-12-09):
+	* Fix bug for the cutoff threshold in 2e integrals
+	* Optimize 2e integrals for Segment-contracted basis
+
+Version 1.1.4 (2013-07-28):
+	* Small optimization for memory alloc in cint2e
+
+Version 1.1.3 (2013-06-19):
+	* Small optimization for matrix transposition
+
+Version 1.1.2 (2013-06-04):
+	* Change C-Fortran code examples.
+	* Update testsuits.
+	* Add new integrals which appear in DHF-DKB calculation.
+
+Version 1.1.1 (2013-05-29):
+	* Fix bug in function f_bra_cart2spinor_sf.
+
+Version 1.1 (2013-05-29):
+	* Optimize the transformation from Cartesian GTO to
+	  spheric-spinor GTO.
+
+Version 1.0 (2013-01-15):
+	* First release.
+	* 1e-2e contracted cartensian-spheric-spinor GTO integarls.
+	* Common lisp script to generate integral code.
+
