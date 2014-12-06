@@ -18,10 +18,15 @@ c call CINTdel_optimizer(CINTopt)
 #include "bas.fh"
 #include "basP.fh"
 #include "geom.fh"
+#include "bas_exndcf.fh"
       integer offset = 0
       integer geom, basis       ! [input] handles
       integer natoms, nshell
-      integer i, j, ptr, ish
+      integer i, j, ptr, iat
+      integer ishlo, ishhi, ish, myprim, mycont, ucont
+      character*16 gtag         ! geometry tag 
+      double precision chg
+      double precision cxyz(3)
       double precision,allocatable envbuf(:)
 
       status = geom_ncent(geom, natoms)
@@ -35,38 +40,48 @@ c call CINTdel_optimizer(CINTopt)
       allocate (CINTbas(8,nshell))
 c a buf which assumes 50->20 contraction for each shell should be enough
       allocate(envbuf(natoms*4+nshell*50*20))
-      do i = 1, natoms
-        CINTatm(1,i) = 0 !TODO: nuclear charge
-        CINTatm(2,i) = offset
-        envbuf(offset+1) = coords(1)
-        envbuf(offset+2) = coords(2)
-        envbuf(offset+3) = coords(3)
+      do iat = 1, natoms
+        if (.not.geom_cent_get(geom, iat, gtag, cxyz, chg)) call errquit
+     &      ('ecpso_ncent: geom_cent_get failed',911, GEOM_ERR)
+        CINTatm(1,iat) = chg
+        CINTatm(2,iat) = offset
+        envbuf(offset+1) = cxyz(1)
+        envbuf(offset+2) = cxyz(2)
+        envbuf(offset+3) = cxyz(3)
         offset = offset + 3
-        CINTatm(3,i) = 1 ! point nuclear model
+        CINTatm(3,iat) = 1 ! point nuclear model
         offset = offset + 1
-c        CINTatm(4,i) = offset ! pointer to nuclear mass
+c        CINTatm(4,iat) = offset ! pointer to nuclear mass
 c        envbuf(offset+1) = mass
 c        offset = offset + 1
-      end do
 
-      do ish = 1, nshell
-        CINTbas(1,ish) = ibs_cn2ce (ncont,ish) - 1 ! atom_id, 0-based
-        CINTbas(2,ish) = infbs_cont(CONT_TYPE,uncont,ish)  ! angular momentum
-        CINTbas(3,ish) = infbs_cont(CONT_NPRIM,ucont,ish) ! num of pGTO
-        CINTbas(4,ish) = infbs_cont(CONT_NGEN ,ucont,ish) ! num of contracted GTO
-        CINTbas(5,ish) = 0 ! kappa for spinor basis
-        CINTbas(6,ish) = offset ! pointer to exp of primitive GTO
-        ptr = mb_exndcf(infbs_cont(CONT_IEXP,ucont,ish), ish)
-        do j = 1, CINTbas(3,ish)
-          envbuf(offset+j) = dbl_mb(ptr+j)
+        if (.not. bas_ce2cnr(basis, iat, ishlo, ishhi))
+     $        call errquit('schwarz_init: bas_ce2cnr failed', ish,
+     &       BASIS_ERR)
+        do ish = ishlo, ishhi
+          ucont = sf_ibs_cn2ucn(ish, basis)
+          CINTbas(1,ish) = ibs_cn2ce(ish,basis) - 1 ! atom_id, 0-based
+          CINTbas(2,ish) = infbs_cont(CONT_TYPE ,ucont,ish) ! angular momentum
+          myprim = infbs_cont(CONT_NPRIM,ucont,ish) ! num of primitive GTO
+          mycont = infbs_cont(CONT_NGEN ,ucont,ish) ! num of contracted GTO
+          CINTbas(3,ish) = myprim
+          CINTbas(4,ish) = mycont
+          CINTbas(5,ish) = 0 ! kappa for spinor basis
+          CINTbas(6,ish) = offset ! pointer to exp of primitive GTO
+
+          ptr = infbs_cont(CONT_IEXP,ucont,basis) - 1
+          do i = 1, myprim
+            envbuf(offset+i) = sf_exndcf(ptr+i,basis)
+          end do
+          offset = offset + CINTbas(3,ish)
+
+          CINTbas(7,ish) = offset ! pointer to contraction coefficients
+          ptr = infbs_cont(CONT_ICFP,ucont,ish) - 1
+          do j = 1, myprim*mycont
+            envbuf(offset+j) = sf_exndcf((ptr+j)
+          end do
+          offset = offset + myprim*mycont
         end do
-        offset = offset + CINTbas(3,ish)
-        CINTbas(7,ish) = offset ! pointer to contraction coefficients
-        ptr = mb_exndcf(infbs_cont(CONT_ICFP,ucont,ish), ish)
-        do j = 1, CINTbas(3,ish)*CINTbas(4,ish)
-          envbuf(offset+j) = dbl_mb(ptr+j)
-        end do
-        offset = offset + CINTbas(3,ish)*CINTbas(4,ish)
       end do
 
       allocate (CINTenv(offset))
