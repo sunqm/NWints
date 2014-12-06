@@ -31,7 +31,7 @@ c call CINTdel_optimizer(CINTopt)
 
       status = geom_ncent(geom, natoms)
       status = status .and. bas_numcont(basis, nshell)
-      if (.not. status) call errquit('schwarz_init: info failed', 0,
+      if (.not. status) call errquit('cint_wrap: info failed', 0,
      &       INPUT_ERR)
       CINTnatm = natoms
       CINTnbas = nshell
@@ -42,7 +42,7 @@ c a buf which assumes 50->20 contraction for each shell should be enough
       allocate(envbuf(natoms*4+nshell*50*20))
       do iat = 1, natoms
         if (.not.geom_cent_get(geom, iat, gtag, cxyz, chg)) call errquit
-     &      ('ecpso_ncent: geom_cent_get failed',911, GEOM_ERR)
+     &      ('cint_wrap: geom_cent_get failed',911, GEOM_ERR)
         CINTatm(1,iat) = chg
         CINTatm(2,iat) = offset
         envbuf(offset+1) = cxyz(1)
@@ -56,7 +56,7 @@ c        envbuf(offset+1) = mass
 c        offset = offset + 1
 
         if (.not. bas_ce2cnr(basis, iat, ishlo, ishhi))
-     $        call errquit('schwarz_init: bas_ce2cnr failed', ish,
+     $        call errquit('cint_wrap: bas_ce2cnr failed', ish,
      &       BASIS_ERR)
         do ish = ishlo, ishhi
           ucont = sf_ibs_cn2ucn(ish, basis)
