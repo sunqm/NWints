@@ -35,7 +35,9 @@ c
 c      
 * def u=f d=f -> f.and.!f -> f -> e = t
 * no txs u=t d=f -> t.and.!f -> t -> e = f
-      if (.not.(user_cando_txs.and.(.not.def_cando_txs))) then
+      if (def_cando_cint) then
+        call del_cint_env()
+      else if (.not.(user_cando_txs.and.(.not.def_cando_txs))) then
         call texas_terminate()
       endif
       if (.not.spcart_terminate()) then

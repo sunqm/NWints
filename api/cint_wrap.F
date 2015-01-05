@@ -2,9 +2,10 @@
 c store libcint environments in this module
       integer CINTnatm
       integer CINTnbas
-      integer,allocatable CINTatm(:,:)
-      integer,allocatable CINTbas(:,:)
-      double precision,allocatable CINTenv(:,:)
+      integer,allocatable :: CINTatm(:,:)
+      integer,allocatable :: CINTbas(:,:)
+c     double precision,allocatable :: CINTenv(:,:)
+      double precision,allocatable :: CINTenv(:) ! Use only as 1D array
 c initialize and delete opt by
 c call f2e_optimizer(CINTopt, CINTatm, CINTnatm, CINTbas, CINTnbas, CINTenv)
 c call CINTdel_optimizer(CINTopt)
@@ -12,24 +13,42 @@ c call CINTdel_optimizer(CINTopt)
       end module
 
 
-      subroutine init_cint_env()
+      subroutine init_cint_env(rtdb,basis)
       use cint_wrap
       implicit none
-#include "bas.fh"
+cHACK
+c     Ideally these two include files should not be here.
+c     The <name>P.fh indicates that this is a Private include file of
+c     the module indicated by <name>. Instead we should be calling
+c     the regular API functions of the BAS module. Nevertheless, let's
+c     get this stuff working first, then we can make it nice.
+#include "nwc_const.fh"
+#include "mafdecls.fh"
+#include "basdeclsP.fh"
 #include "basP.fh"
-#include "geom.fh"
 #include "bas_exndcf.fh"
-      integer offset = 0
+#include "bas_ibs_dec.fh"
+#include "geobasmapP.fh"
+#include "bas_ibs_sfn.fh"
+cHACK
+#include "errquit.fh"
+#include "bas.fh"
+#include "geom.fh"
+      integer offset
+      integer rtdb        !< [Input] The RTDB handle
       integer geom, basis       ! [input] handles
       integer natoms, nshell
       integer i, j, ptr, iat
       integer ishlo, ishhi, ish, myprim, mycont, ucont
+      logical status
       character*16 gtag         ! geometry tag 
       double precision chg
       double precision cxyz(3)
-      double precision,allocatable envbuf(:)
+      double precision,allocatable :: envbuf(:)
+      data offset/0/
 
-      status = geom_ncent(geom, natoms)
+      status = bas_geom(basis,geom)
+      status = status .and. geom_ncent(geom, natoms)
       status = status .and. bas_numcont(basis, nshell)
       if (.not. status) call errquit('cint_wrap: info failed', 0,
      &       INPUT_ERR)
@@ -78,7 +97,7 @@ c        offset = offset + 1
           CINTbas(7,ish) = offset ! pointer to contraction coefficients
           ptr = infbs_cont(CONT_ICFP,ucont,ish) - 1
           do j = 1, myprim*mycont
-            envbuf(offset+j) = sf_exndcf((ptr+j)
+            envbuf(offset+j) = sf_exndcf(ptr+j,basis)
           end do
           offset = offset + myprim*mycont
         end do
@@ -124,6 +143,6 @@ c:: local
       shls(2) = jsh - 1
       shls(3) = ksh - 1
       shls(4) = lsh - 1
-      cint2e_sph(eri, shls, CINTatm, CINTnatm, CINTbas, CINTnbas,
-     &           CINTenv, CINTopt) 
+      call cint2e_sph(eri, shls, CINTatm, CINTnatm, CINTbas, CINTnbas,
+     &                CINTenv, CINTopt) 
       end subroutine cint_2e4c
