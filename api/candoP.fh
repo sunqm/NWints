@@ -24,10 +24,12 @@
 *
       logical user_cando_sp  ! did user set a value for sp 
       logical user_cando_nw  ! did user set a value for nw 
+      logical user_cando_cint! did user set a value for libcint
       logical user_cando_txs ! did user set a value for txs
       logical user_cando_hnd ! did user set a value for hnd
       logical def_cando_sp   ! default user setable value for cando_sp
       logical def_cando_nw   ! default user setable value for cando_nw
+      logical def_cando_cint ! default user setable value for cando_cint
       logical def_cando_txs  ! default user setable value for cando_txs
       logical def_cando_hnd  ! default user setable value for cando_hnd
 c
@@ -36,9 +38,10 @@ c
       logical app_stored_hnd   ! value stored in int_app_set_no_hnd
       integer rtdbIused
 c
-      common /clcando/ user_cando_sp, user_cando_nw, user_cando_txs,
-     &    user_cando_hnd,
-     &    def_cando_sp, def_cando_nw, def_cando_txs, def_cando_hnd,
+      common /clcando/ user_cando_sp, user_cando_nw, user_cando_cint, 
+     &    user_cando_txs, user_cando_hnd,
+     &    def_cando_sp, def_cando_nw, def_cando_cint, def_cando_txs,
+     &    def_cando_hnd,
      &    app_stored_txs, app_stored_spint, app_stored_hnd,
      &    rtdbIused
       

@@ -93,9 +93,11 @@ c::functions
       logical cando_nw
       logical cando_sp
       logical cando_txs
+      logical cando_cint
       external cando_nw
       external cando_sp
       external cando_txs
+      external cando_cint
 #define PERF_NORMAL
 #if defined(PERF_NORMAL)
       logical int_chk_sh
@@ -130,7 +132,7 @@ c.txs
       double precision q4
       integer nint
       logical dum_log
-      logical status_sp, status_nw, status_txs, status_gen
+      logical status_sp, status_nw, status_txs, status_gen, status_cint
       integer texas_ang_limit
 c.rel-dmd
       logical status_rel, bra_rel, ket_rel
@@ -233,6 +235,9 @@ c... stat texas
       endif
 c... stat nw
       status_nw  = cando_nw(brain,ish,jsh).and.cando_nw(ketin,ksh,lsh)
+c... stat libcint
+      status_cint= cando_cint(brain,ish,jsh).and.
+     &             cando_cint(ketin,ksh,lsh)
 c... stat rel
       status_rel = dyall_mod_dir .and. .not.nesc_1e_approx
      &    .and. (brain .eq. ketin) .and. (brain .eq. ao_bsh)
@@ -272,7 +277,12 @@ c
         status_rel = status_rel .and. (bra_rel .or. ket_rel)
       end if
 c
-      if (status_sp) then
+      if (status_cint) then
+c
+        call cint_2e4c(brain,ish,jsh,ketin,ksh,lsh,
+     &                 lscr,scr,leri,eri)
+c
+      else if (status_sp) then
 c
         call genr70(
      &         brain,ish,coords(1,a_cent,ab_geom),

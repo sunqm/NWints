@@ -179,6 +179,8 @@ C> routine reads any integral settings changed by the user from
 C> the runtime database. Only data associated with relativistic
 C> basis sets are handled in `int_init`.
 C>
+C> Variables are explained in more detail in `candoP.fh`.
+C>
       subroutine int_init_org(rtdb, nbas, bases)
 c
 c initializes integral code to data structers for a integral computation
@@ -257,10 +259,12 @@ c initialize cando information from rtdb
 c
       user_cando_sp   = .false.
       user_cando_nw   = .false.
+      user_cando_cint = .false.
       user_cando_txs  = .false.
       user_cando_hnd  = .false.
       def_cando_sp    = .false.
       def_cando_nw    = .false.
+      def_cando_cint  = .false.
       def_cando_txs   = .false.
       def_cando_hnd   = .false.
 c
@@ -280,6 +284,16 @@ c
         if (ga_nodeid().eq.0 .and. oprint) then
           write(luout,*)
      &        ' int_init: cando_nw set to always be ',def_cando_nw
+          call util_flush(luout)
+        endif
+      endif
+c
+      if (rtdb_get(rtdb,'int:cando_cint',MT_LOG,1,status)) then
+        user_cando_cint = .true.
+        def_cando_cint  = status
+        if (ga_nodeid().eq.0 .and. oprint) then
+          write(luout,*)
+     &        ' int_init: cando_cint set to always be ',def_cando_cint
           call util_flush(luout)
         endif
       endif
@@ -407,7 +421,10 @@ c
       call int_acc_std()
 * def u=f d=f -> f.and.!f -> f -> e = t
 * no txs u=t d=f -> t.and.!f -> t -> e = f
-      if (.not.(user_cando_txs.and.(.not.def_cando_txs))) then
+      if (def_cando_cint) then
+        if (nbas.ne.1) call errquit("int_init_org: nbas.ne.1",nbas,UERR)
+        call init_cint_env(rtdb,bases)
+      else if (.not.(user_cando_txs.and.(.not.def_cando_txs))) then
         call texas_init(rtdb,nbas,bases,nqmax_texas,txs_mem_min,
      *                  'scfd_int')
       else
